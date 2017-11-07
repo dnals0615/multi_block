@@ -74,7 +74,8 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 	unsigned char *host = "Host: ";
 	unsigned char *host_name;
 	int host_name_len = 0;
-
+	int check;	
+	char buf[200];
 	u_int32_t id = print_pkt(nfa);
 	printf("entering callback\n");
 	
@@ -114,7 +115,13 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 		else host_name[i] = http[i];
 	} // 여기까지 하면 host_name 에 이름 저장됨. 이제 파일에서 이 이름이 있나 검색하기.
 
+	sprintf(buf,"grep -w %s sorted_list.csv",host_name);
+	check = system(buf);
 	
+	if(check == 0)
+		return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
+	else
+		return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
 	
 	
 //	printf("http : %c%c%c%c\n", http[0],http[1], http[2], http[3]);
