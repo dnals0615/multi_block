@@ -130,7 +130,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 	if(count == 200) return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL); //
 	printf("심지어 여기도 오케이\n");
 
-	printf("%s\n", host_name);  //check
+	printf("host name is : %s\n", host_name);  //check
 	sprintf(buf, "grep -w %s sorted_list.csv", host_name);
 	check = system(buf);
 	
