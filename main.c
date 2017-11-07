@@ -10,7 +10,7 @@
 #include <libnetfilter_queue/libnetfilter_queue.h>
 #include <pcap.h>
 
-unsigned char *target;
+//unsigned char *target;
 
 /* returns packet id */
 static u_int32_t print_pkt (struct nfq_data *tb)
@@ -72,9 +72,11 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 	      struct nfq_data *nfa, void *data)
 {
 	unsigned char *host = "Host: ";
-	unsigned char *host_name;
+	unsigned char host_name[200] = {0,};
 	int host_name_len = 0;
-	int check;	
+	int check;
+	int count = 0 ;	
+	int i = 0;
 	char buf[200];
 	u_int32_t id = print_pkt(nfa);
 	printf("entering callback\n");
@@ -104,18 +106,32 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 	unsigned char * http = (unsigned char *)tmp;
 
 	//printf("http[0] : %d  ?  tmp[0] : %d\n", http[0],tmp[0]);	//check !!!!!
-
-	for(int i = 0; i<200;i++){
+	printf("여기까지는 오케이\n");
+	for(i = 0; i<1000;i++){
 		if(strncmp(http, host, 6) == 0  ) break;
 		else http++;
 	}
-	http += 6;          // 여기서 부터 호스트 이름 가리킴, 0x0d,0x0a 나올때 까지 저장하기  
-	for(int i=0;i<200;i++){
-		if(http[i] == 0x0d)break;
-		else host_name[i] = http[i];
-	} // 여기까지 하면 host_name 에 이름 저장됨. 이제 파일에서 이 이름이 있나 검색하기.
+	printf("%d\n", i);
+	if(i==1000) return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
 
-	sprintf(buf,"grep -w %s sorted_list.csv",host_name);
+	http += 6;          // 여기서 부터 호스트 이름 가리킴, 0x0d,0x0a 나올때 까지 저장하기  
+	printf("good!\n"); //
+	
+	//host_name[0] = http[0];
+	//printf("%c,%c\n", host_name[0], http[0] );
+	
+	//host_name = "\0"; 
+
+	for(count=0;count<200;count++){
+		if(http[count] == 0x0d)
+			break;
+		else host_name[count] = http[count];
+	} // 여기까지 하면 host_name 에 이름 저장됨. 이제 파일에서 이 이름이 있나 검색하기.
+	if(count == 200) return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL); //
+	printf("심지어 여기도 오케이\n");
+
+	printf("%s\n", host_name);  //check
+	sprintf(buf, "grep -w %s sorted_list.csv", host_name);
 	check = system(buf);
 	
 	if(check == 0)
@@ -146,7 +162,7 @@ int main(int argc, char **argv)
 
 	system("iptables -A OUTPUT -p tcp -j NFQUEUE");
 
-	target = argv[1];
+	//target = argv[1];
 
 	
 	printf("opening library handle\n");
