@@ -110,7 +110,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 		else http++;
 	}
 	http += 6;          // 여기서 부터 호스트 이름 가리킴, 0x0d,0x0a 나올때 까지 저장하기  
-	for(i=0;i<200;i++){
+	for(int i=0;i<200;i++){
 		if(http[i] == 0x0d)break;
 		else host_name[i] = http[i];
 	} // 여기까지 하면 host_name 에 이름 저장됨. 이제 파일에서 이 이름이 있나 검색하기.
